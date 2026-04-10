@@ -1,0 +1,103 @@
+{
+  "hash": "a887d820",
+  "configHash": "0553db52",
+  "lockfileHash": "392ecf8d",
+  "browserHash": "f6de4cf0",
+  "optimized": {
+    "react": {
+      "src": "../../react/index.js",
+      "file": "react.js",
+      "fileHash": "9ba98ac0",
+      "needsInterop": true
+    },
+    "react-dom": {
+      "src": "../../react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "18b04d1d",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "8e530c1e",
+      "needsInterop": true
+    },
+    "react/jsx-runtime": {
+      "src": "../../react/jsx-runtime.js",
+      "file": "react_jsx-runtime.js",
+      "fileHash": "ccabcb22",
+      "needsInterop": true
+    },
+    "axios": {
+      "src": "../../axios/index.js",
+      "file": "axios.js",
+      "fileHash": "e99ea44f",
+      "needsInterop": false
+    },
+    "date-fns": {
+      "src": "../../date-fns/index.mjs",
+      "file": "date-fns.js",
+      "fileHash": "04caf2d2",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "66fe8d71",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "38f1a814",
+      "needsInterop": true
+    },
+    "react-hook-form": {
+      "src": "../../react-hook-form/dist/index.esm.mjs",
+      "file": "react-hook-form.js",
+      "fileHash": "d96a76aa",
+      "needsInterop": false
+    },
+    "react-hot-toast": {
+      "src": "../../react-hot-toast/dist/index.mjs",
+      "file": "react-hot-toast.js",
+      "fileHash": "d2ad0a01",
+      "needsInterop": false
+    },
+    "react-router-dom": {
+      "src": "../../react-router-dom/dist/index.js",
+      "file": "react-router-dom.js",
+      "fileHash": "915bad67",
+      "needsInterop": false
+    },
+    "socket.io-client": {
+      "src": "../../socket.io-client/build/esm/index.js",
+      "file": "socket__io-client.js",
+      "fileHash": "98b71ce8",
+      "needsInterop": false
+    },
+    "zustand": {
+      "src": "../../zustand/esm/index.mjs",
+      "file": "zustand.js",
+      "fileHash": "0544ec1b",
+      "needsInterop": false
+    },
+    "zustand/middleware": {
+      "src": "../../zustand/esm/middleware.mjs",
+      "file": "zustand_middleware.js",
+      "fileHash": "ee8a954c",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-NUMECXU6": {
+      "file": "chunk-NUMECXU6.js"
+    },
+    "chunk-RLJ2RCJQ": {
+      "file": "chunk-RLJ2RCJQ.js"
+    },
+    "chunk-DC5AMYBS": {
+      "file": "chunk-DC5AMYBS.js"
+    }
+  }
+}
