@@ -1,0 +1,338 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  gstin         String    @unique
+  businessName  String
+  mobile        String    @unique
+  address       String?
+  role          String    @default("SELLER")
+  isVerified    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  issuedInvoices    Invoice[]   @relation("SellerInvoices")
+  receivedInvoices  Invoice[]   @relation("BuyerInvoices")
+  inventory         Inventory[]
+  paymentsReceived  Payment[]   @relation("SellerPayments")
+  paymentsMade      Payment[]   @relation("BuyerPayments")
+  notesIssued       CreditDebitNote[] @relation("SellerNotes")
+  notifications     Notification[]
+  securityLogs      SecurityLog[]
+
+  @@map("users")
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  invoiceNumber   String        @unique
+  invoiceDate     DateTime
+  dueDate         DateTime?
+  
+  sellerId        String
+  seller          User          @relation("SellerInvoices", fields: [sellerId], references: [id])
+  sellerGstin     String
+  sellerName      String
+  sellerAddress   String
+  
+  buyerId         String?
+  buyer           User?         @relation("BuyerInvoices", fields: [buyerId], references: [id])
+  buyerGstin      String
+  buyerName       String
+  buyerAddress    String?
+  
+  placeOfSupply   String
+  reverseCharge   Boolean       @default(false)
+  
+  taxableAmount   Float         @default(0)
+  cgstAmount      Float         @default(0)
+  sgstAmount      Float         @default(0)
+  igstAmount      Float         @default(0)
+  totalAmount     Float         @default(0)
+  totalTax        Float         @default(0)
+  roundOff        Float         @default(0)
+  
+  status          String        @default("PENDING")
+  statusReason    String?
+  
+  paymentStatus   String        @default("PENDING")
+  paidAmount      Float         @default(0)
+  
+  pdfUrl          String?
+  jsonData        String?
+  
+  irn             String?       @unique
+  irnGeneratedAt  DateTime?
+  
+  itcClaimed      Boolean       @default(false)
+  itcClaimedAt    DateTime?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items           InvoiceItem[]
+  notes           CreditDebitNote[]
+  payments        Payment[]
+  activities      InvoiceActivity[]
+
+  // Security fields - End to End Encryption
+  encryptedData   String?
+  dataHash        String?
+  securityPatchLevel String?
+  lastModified    DateTime?     @updatedAt
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id              String    @id @default(uuid())
+  invoiceId       String
+  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  description     String
+  hsnCode         String
+  quantity        Float     @default(0)
+  unit            String    @default("PCS")
+  unitPrice       Float     @default(0)
+  discount        Float     @default(0)
+  
+  taxableValue    Float     @default(0)
+  cgstRate        Float     @default(9)
+  cgstAmount      Float     @default(0)
+  sgstRate        Float     @default(9)
+  sgstAmount      Float     @default(0)
+  igstRate        Float     @default(18)
+  igstAmount      Float     @default(0)
+  totalAmount     Float     @default(0)
+  
+  inventoryId     String?
+  inventory       Inventory? @relation(fields: [inventoryId], references: [id])
+
+  @@map("invoice_items")
+}
+
+model CreditDebitNote {
+  id              String    @id @default(uuid())
+  noteNumber      String    @unique
+  noteType        String
+  
+  // Reference to original invoice
+  invoiceId       String
+  invoice         Invoice   @relation(fields: [invoiceId], references: [id])
+  
+  // Issuer
+  sellerId        String
+  seller          User      @relation("SellerNotes", fields: [sellerId], references: [id])
+  
+  // Details
+  reason          String
+  noteDate        DateTime
+  
+  taxableAmount   Float     @default(0)
+  cgstAmount      Float     @default(0)
+  sgstAmount      Float     @default(0)
+  igstAmount      Float     @default(0)
+  totalAmount     Float     @default(0)
+  
+  // Status
+  status          String    @default("ACTIVE")
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("credit_debit_notes")
+}
+
+model Payment {
+  id              String    @id @default(uuid())
+  
+  invoiceId       String?
+  invoice         Invoice?  @relation(fields: [invoiceId], references: [id])
+  
+  // Parties
+  sellerId        String
+  seller          User      @relation("SellerPayments", fields: [sellerId], references: [id])
+  buyerId         String
+  buyer           User      @relation("BuyerPayments", fields: [buyerId], references: [id])
+  
+  amount          Float     @default(0)
+  paymentDate     DateTime
+  paymentMode     String    // UPI, NEFT, RTGS, Cash, Cheque
+  referenceNo     String?   // UTR, Cheque No, etc.
+  bankName        String?
+  notes           String?
+  
+  // For advance payments
+  isAdvance       Boolean   @default(false)
+  advanceUsed     Float     @default(0)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("payments")
+}
+
+model Inventory {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  
+  // Item details
+  name            String
+  hsnCode         String
+  description     String?
+  
+  quantity        Float     @default(0)
+  unit            String    @default("PCS")
+  reorderLevel    Float     @default(0)
+  
+  purchasePrice   Float     @default(0)
+  salePrice       Float     @default(0)
+  
+  cgstRate        Float     @default(9)
+  sgstRate        Float     @default(9)
+  igstRate        Float     @default(18)
+  
+  // Track incoming/outgoing
+  lastPurchaseAt  DateTime?
+  lastSaleAt      DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  invoiceItems    InvoiceItem[]
+
+  @@unique([userId, hsnCode])
+  @@map("inventory")
+}
+
+model InvoiceActivity {
+  id              String    @id @default(uuid())
+  invoiceId       String
+  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  action          String    // CREATED, SHARED, ACCEPTED, REJECTED, MODIFIED, etc.
+  performedBy     String
+  performedByRole String
+  details         String?
+  
+  createdAt       DateTime  @default(now())
+
+  @@map("invoice_activities")
+}
+
+model Notification {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  
+  type            String    // INVOICE_RECEIVED, INVOICE_ACCEPTED, PAYMENT_RECEIVED, etc.
+  title           String
+  message         String
+  
+  // Link to related entity
+  entityType      String?   // invoice, payment, note
+  entityId        String?
+  
+  isRead          Boolean   @default(false)
+  
+  createdAt       DateTime  @default(now())
+
+  @@map("notifications")
+}
+
+model GstReturn {
+  id              String    @id @default(uuid())
+  userId          String
+  returnType      String    // GSTR1, GSTR3B
+  period          String    // MM-YYYY
+  
+  // Summary data
+  summaryData     String
+  
+  // Status
+  filed           Boolean   @default(false)
+  filedAt         DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, returnType, period])
+  @@map("gst_returns")
+}
+
+model Otp {
+  id              String    @id @default(uuid())
+  email           String
+  gstin           String
+  otp             String
+  expiresAt       DateTime
+  used            Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+
+  @@map("otps")
+}
+
+// Security Audit Log - End to End Encryption System
+model SecurityLog {
+  id              String    @id @default(uuid())
+  
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id])
+  
+  invoiceId       String?
+  action          String    // UNAUTHORIZED_ACCESS_ATTEMPT, SECURE_INVOICE_ACCESS, etc.
+  
+  ipAddress       String?
+  userAgent       String?
+  timestamp       DateTime  @default(now())
+  
+  metadata        String?   // Additional security context (JSON string)
+  
+  @@map("security_logs")
+}
+
+// Digital Signatures for Invoice Verification
+model InvoiceSignature {
+  id              String    @id @default(uuid())
+  
+  invoiceId       String
+  signature       String    // Base64 encoded signature
+  publicKey       String    // PEM format public key
+  algorithm       String    // e.g., RSA-SHA256
+  certificateId   String    @unique
+  
+  signedBy        String    // User ID who signed
+  signerRole      String    // seller, buyer, system
+  signedAt        DateTime  @default(now())
+  
+  @@map("invoice_signatures")
+}
+
+// Blockchain-Inspired Audit Blocks
+model AuditBlock {
+  id              String    @id @default(uuid())
+  
+  index           Int       // Block number in chain
+  timestamp       DateTime  @default(now())
+  
+  data            String    // JSON string of BlockData
+  invoiceId       String
+  
+  previousHash    String    // Hash of previous block
+  hash            String    // Hash of this block
+  nonce           Int       // Proof of work nonce
+  
+  @@index([invoiceId, index])
+  @@map("audit_blocks")
+}
