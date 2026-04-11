@@ -1,140 +1,251 @@
-<p align="center">
-  <img width="250" src="/yargs-logo.png">
-</p>
-<h1 align="center"> Yargs </h1>
-<p align="center">
-  <b >Yargs be a node.js library fer hearties tryin' ter parse optstrings</b>
-</p>
+# GST Invoice Hub
 
-<br>
+**A complete full-stack web application for small businesses in India to solve B2B invoice tracking and GST compliance issues.**
 
-[![Build Status][travis-image]][travis-url]
-[![NPM version][npm-image]][npm-url]
-[![js-standard-style][standard-image]][standard-url]
-[![Coverage][coverage-image]][coverage-url]
-[![Conventional Commits][conventional-commits-image]][conventional-commits-url]
-[![Slack][slack-image]][slack-url]
+Built for **HackHorizon 2K26** - Hackathon MVP
 
-## Description :
-Yargs helps you build interactive command line tools, by parsing arguments and generating an elegant user interface.
+---
 
-It gives you:
+## Problem Statement
 
-* commands and (grouped) options (`my-program.js serve --port=5000`).
-* a dynamically generated help menu based on your arguments.
+Small businesses in India face significant challenges with:
+- Tracking B2B invoices between sellers and buyers
+- Manual GST compliance and return filing
+- Payment tracking and reconciliation
+- Inventory management with GST implications
+- Communication gaps between trading partners
 
-> <img width="400" src="/screen.png">
+## Solution Overview
 
-* bash-completion shortcuts for commands and options.
-* and [tons more](/docs/api.md).
+GST Invoice Hub provides a unified platform where:
+- **Sellers** can generate/upload invoices, track status, issue credit/debit notes, and manage payments
+- **Buyers** can receive invoices, accept/reject/request modifications, and claim ITC
+- **Admins** can monitor disputes and view analytics
 
-## Installation
+### Key Features
 
-Stable version:
+1. **User Authentication** - GSTIN/Mobile OTP-based login with JWT
+2. **Invoice Management** - Create, share, track, and manage B2B invoices
+3. **Real-time Notifications** - WebSocket-powered instant updates
+4. **Payment Tracking** - Link payments to invoices with UTR/transaction details
+5. **Credit/Debit Notes** - Generate against existing invoices
+6. **Inventory Sync** - Automatic stock updates on invoice acceptance
+7. **GST Returns** - Auto-generate GSTR-1 (Sales) and GSTR-3B (ITC) summaries with CSV export
+8. **Mock GSTN Integration** - Simulated IRN generation and GSTR-2A fetch
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 18 + TypeScript + Tailwind CSS + Vite |
+| **State Management** | Zustand |
+| **HTTP Client** | Axios |
+| **Forms** | React Hook Form |
+| **Icons** | Lucide React |
+| **Charts** | Recharts |
+| **Backend** | Node.js + Express + TypeScript |
+| **Database** | PostgreSQL + Prisma ORM |
+| **Real-time** | Socket.io |
+| **Auth** | JWT + bcrypt |
+| **Containerization** | Docker + Docker Compose |
+
+---
+
+## Project Structure
+
+```
+GSTInvoiceHub/
+├── backend/
+│   ├── src/
+│   │   ├── config/         # Database, email config
+│   │   ├── middleware/     # Auth middleware
+│   │   ├── routes/         # API routes
+│   │   ├── utils/          # Helpers, constants
+│   │   ├── types/          # TypeScript types
+│   │   └── server.ts       # Entry point
+│   ├── prisma/
+│   │   └── schema.prisma   # Database schema
+│   ├── uploads/            # File uploads
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   │   ├── components/     # Reusable components
+│   │   ├── pages/          # Page components
+│   │   ├── store/          # Zustand stores
+│   │   ├── utils/          # API, constants
+│   │   └── App.tsx         # Main app
+│   └── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL 15+
+- Docker (optional)
+
+### Using Docker (Recommended)
+
 ```bash
-npm i yargs
+# Clone the repository
+git clone <repository-url>
+cd GSTInvoiceHub
+
+# Start all services
+docker-compose up -d
+
+# Access the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:5000/api
 ```
 
-Bleeding edge version with the most recent features:
+### Manual Setup
+
+#### Backend
 ```bash
-npm i yargs@next
+cd backend
+
+# Install dependencies
+npm install
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Run migrations
+npx prisma migrate dev
+
+# Generate Prisma client
+npx prisma generate
+
+# Start development server
+npm run dev
 ```
 
-## Usage :
-
-### Simple Example
-
-```javascript
-#!/usr/bin/env node
-const {argv} = require('yargs')
-
-if (argv.ships > 3 && argv.distance < 53.5) {
-  console.log('Plunder more riffiwobbles!')
-} else {
-  console.log('Retreat from the xupptumblers!')
-}
-```
-
+#### Frontend
 ```bash
-$ ./plunder.js --ships=4 --distance=22
-Plunder more riffiwobbles!
+cd frontend
 
-$ ./plunder.js --ships 12 --distance 98.7
-Retreat from the xupptumblers!
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
-### Complex Example
+---
 
-```javascript
-#!/usr/bin/env node
-require('yargs') // eslint-disable-line
-  .command('serve [port]', 'start the server', (yargs) => {
-    yargs
-      .positional('port', {
-        describe: 'port to bind on',
-        default: 5000
-      })
-  }, (argv) => {
-    if (argv.verbose) console.info(`start server on :${argv.port}`)
-    serve(argv.port)
-  })
-  .option('verbose', {
-    alias: 'v',
-    type: 'boolean',
-    description: 'Run with verbose logging'
-  })
-  .argv
-```
+## API Endpoints
 
-Run the example above with `--help` to see the help for the application.
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login with email/password
+- `POST /api/auth/request-otp` - Request OTP
+- `POST /api/auth/verify-otp` - Verify OTP and login
 
-## TypeScript
+### Invoices
+- `GET /api/invoices` - List invoices (with filters)
+- `POST /api/invoices` - Create invoice
+- `GET /api/invoices/:id` - Get invoice details
+- `PATCH /api/invoices/:id/status` - Update invoice status
+- `POST /api/invoices/:id/claim-itc` - Claim ITC
 
-yargs has type definitions at [@types/yargs][type-definitions].
+### Payments
+- `GET /api/payments` - List payments
+- `POST /api/payments` - Record payment
 
-```
-npm i @types/yargs --save-dev
-```
+### Credit/Debit Notes
+- `GET /api/notes` - List notes
+- `POST /api/notes` - Create note
 
-See usage examples in [docs](/docs/typescript.md).
+### Inventory
+- `GET /api/inventory` - List inventory
+- `POST /api/inventory` - Add item
+- `PATCH /api/inventory/:id` - Update item
 
-## Webpack
+### GST Returns
+- `GET /api/gst-returns/gstr1?period=MM-YYYY` - Generate GSTR-1
+- `GET /api/gst-returns/gstr3b?period=MM-YYYY` - Generate GSTR-3B
+- `GET /api/gst-returns/gstr1/export` - Export GSTR-1 as CSV
 
-See usage examples of yargs with webpack in [docs](/docs/webpack.md).
+### Mock GSTN
+- `POST /api/mock-gstn/generate-irn` - Generate mock IRN
+- `GET /api/mock-gstn/gstr2a` - Fetch mock GSTR-2A
+- `GET /api/mock-gstn/taxpayer/:gstin` - Get taxpayer details
 
-## Community :
+---
 
-Having problems? want to contribute? join our [community slack](http://devtoolscommunity.herokuapp.com).
+## Demo Credentials
 
-## Documentation :
+For hackathon demo purposes:
 
-### Table of Contents
+**Sample Users:**
+- Seller: `seller@example.com` / Password: `seller123` / GSTIN: `27AABCU9603R1ZM`
+- Buyer: `buyer@example.com` / Password: `buyer123` / GSTIN: `07AABCZ1234A1Z2`
+- Admin: `admin@example.com` / Password: `admin123`
 
-* [Yargs' API](/docs/api.md)
-* [Examples](/docs/examples.md)
-* [Parsing Tricks](/docs/tricks.md)
-  * [Stop the Parser](/docs/tricks.md#stop)
-  * [Negating Boolean Arguments](/docs/tricks.md#negate)
-  * [Numbers](/docs/tricks.md#numbers)
-  * [Arrays](/docs/tricks.md#arrays)
-  * [Objects](/docs/tricks.md#objects)
-  * [Quotes](/docs/tricks.md#quotes)
-* [Advanced Topics](/docs/advanced.md)
-  * [Composing Your App Using Commands](/docs/advanced.md#commands)
-  * [Building Configurable CLI Apps](/docs/advanced.md#configuration)
-  * [Customizing Yargs' Parser](/docs/advanced.md#customizing)
-* [Contributing](/contributing.md)
+**Mock OTP:** `123456`
 
-[travis-url]: https://travis-ci.org/yargs/yargs
-[travis-image]: https://img.shields.io/travis/yargs/yargs/master.svg
-[npm-url]: https://www.npmjs.com/package/yargs
-[npm-image]: https://img.shields.io/npm/v/yargs.svg
-[standard-image]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg
-[standard-url]: http://standardjs.com/
-[conventional-commits-image]: https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg
-[conventional-commits-url]: https://conventionalcommits.org/
-[slack-image]: http://devtoolscommunity.herokuapp.com/badge.svg
-[slack-url]: http://devtoolscommunity.herokuapp.com
-[type-definitions]: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/yargs
-[coverage-image]: https://img.shields.io/nycrc/yargs/yargs
-[coverage-url]: https://github.com/yargs/yargs/blob/master/.nycrc
+---
+
+## Database Schema
+
+### Core Entities
+- **User** - Businesses (sellers/buyers)
+- **Invoice** - B2B invoices with GST fields
+- **InvoiceItem** - Line items with HSN codes
+- **CreditDebitNote** - Credit/Debit notes
+- **Payment** - Payment records
+- **Inventory** - Product stock
+- **Notification** - User notifications
+- **GstReturn** - Generated return summaries
+
+---
+
+## Features Roadmap
+
+### MVP (Completed for Hackathon)
+- User registration with GSTIN validation
+- Invoice CRUD with GST calculation
+- Real-time status updates via WebSockets
+- Basic inventory management
+- GSTR-1 and GSTR-3B generation
+- Payment tracking
+- Credit/Debit notes
+
+### Future Enhancements
+- E-Way Bill integration
+- Multi-GSTIN support
+- Advanced analytics dashboard
+- Mobile app
+- GSTN API integration (production)
+- E-Invoice QR code generation
+- Automated reconciliation
+
+---
+
+## Team
+
+Built with for **HackHorizon 2K26**
+
+---
+
+## License
+
+MIT License - See [LICENSE](LICENSE) for details
+
+---
+
+## Support
+
+For issues or questions, please contact the development team.
+
+---
+
+**Happy Invoicing!**
